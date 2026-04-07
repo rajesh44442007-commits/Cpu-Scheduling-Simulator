@@ -1,0 +1,107 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+struct Process {
+    int id, bt, wt, tat;
+};
+
+// FCFS Scheduling
+void fcfs(vector<Process> p) {
+    int n = p.size();
+    p[0].wt = 0;
+
+    for (int i = 1; i < n; i++) {
+        p[i].wt = p[i-1].wt + p[i-1].bt;
+    }
+
+    cout << "\nFCFS Scheduling:\n";
+    for (int i = 0; i < n; i++) {
+        p[i].tat = p[i].wt + p[i].bt;
+        cout << "P" << p[i].id << " WT=" << p[i].wt << " TAT=" << p[i].tat << endl;
+    }
+}
+
+// SJF Scheduling
+void sjf(vector<Process> p) {
+    sort(p.begin(), p.end(), [](Process a, Process b) {
+        return a.bt < b.bt;
+    });
+
+    p[0].wt = 0;
+
+    for (int i = 1; i < p.size(); i++) {
+        p[i].wt = p[i-1].wt + p[i-1].bt;
+    }
+
+    cout << "\nSJF Scheduling:\n";
+    for (auto &proc : p) {
+        proc.tat = proc.wt + proc.bt;
+        cout << "P" << proc.id << " WT=" << proc.wt << " TAT=" << proc.tat << endl;
+    }
+}
+
+// Round Robin Scheduling
+void roundRobin(vector<Process> p, int quantum) {
+    int n = p.size();
+    vector<int> rem_bt(n);
+
+    for (int i = 0; i < n; i++)
+        rem_bt[i] = p[i].bt;
+
+    int time = 0;
+
+    while (true) {
+        bool done = true;
+
+        for (int i = 0; i < n; i++) {
+            if (rem_bt[i] > 0) {
+                done = false;
+
+                if (rem_bt[i] > quantum) {
+                    time += quantum;
+                    rem_bt[i] -= quantum;
+                } else {
+                    time += rem_bt[i];
+                    p[i].wt = time - p[i].bt;
+                    rem_bt[i] = 0;
+                }
+            }
+        }
+
+        if (done)
+            break;
+    }
+
+    cout << "\nRound Robin Scheduling:\n";
+    for (int i = 0; i < n; i++) {
+        p[i].tat = p[i].bt + p[i].wt;
+        cout << "P" << p[i].id << " WT=" << p[i].wt << " TAT=" << p[i].tat << endl;
+    }
+}
+
+int main() {
+    int n;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    vector<Process> p(n);
+
+    for (int i = 0; i < n; i++) {
+        p[i].id = i + 1;
+        cout << "Enter Burst Time for P" << i+1 << ": ";
+        cin >> p[i].bt;
+    }
+
+    fcfs(p);
+    sjf(p);
+
+    int quantum;
+    cout << "\nEnter Time Quantum for Round Robin: ";
+    cin >> quantum;
+
+    roundRobin(p, quantum);
+
+    return 0;
+}
